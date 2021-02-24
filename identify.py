@@ -2,23 +2,23 @@ import csv
 import paths
 
 with open(paths.MASTER, "r") as file:
-    records = list(csv.DictReader(file, fieldnames=["uuid", "team", "inner_id", "full_name"]))
+    records = list(csv.DictReader(file, fieldnames=["uuid", "team", "full_name"]))
 
 # Global sets collecting uuid errors while the functions are called and reported at the end of the run (in main)
 missing = set()
 collisions = set()
 
 
-def get_uuid(team, name):
+def get_uuid(team, name, filename):
     options = []
     for record in records:
         if team == record["team"] and name == record["full_name"].split()[0]:
             options.append(record["uuid"])
     if len(options) == 0:
-        missing.add((team, name))
+        missing.add((team, name, filename))
         return None
     elif len(options) > 1:
-        collisions.add((team, name, options))
+        collisions.add((team, name, filename, options))
         return None
     return options[0]
 
@@ -26,13 +26,13 @@ def get_uuid(team, name):
 def report_uuid_errors():
     def sort_key(tup):
         # Sort by team (tup[0]) and then by name (tup[1])
-        # Not using unpacking because there may be 2 or three values in tup (2 in missing, 3 in collisions)
+        # Not using unpacking because there may be 3 or 4 values in tup (3 in missing, 4 in collisions)
         return f"{tup[0]}{tup[1]}"
-    for team, name in sorted(missing, key=sort_key):
-        print(f"ERROR: Candidate not found: team {team} and name {name}")
-    for team, name, options in sorted(collisions, key=sort_key):
-        print(f"ERROR: UUID collision: team {team} and name {name}"
-              f"\tUUIDs are: {options}")
+    for team, name, filename in sorted(missing, key=sort_key):
+        print(f"ERROR: Candidate not found: team {team} and name {name} at {filename}")
+    for team, name, filename, options in sorted(collisions, key=sort_key):
+        print(f"ERROR: UUID collision: team {team} and name {name} at {filename}"
+              f"\n\tUUIDs are: {options}")
 
 
 def get_team(uuid: str) -> str:

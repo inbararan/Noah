@@ -55,12 +55,6 @@ def _write_file_for_team(team_name: str, candidates: List[Candidate], exercise_n
             summary_sheet.cell(row_index, col_index_num, evaluation.summary.num)
             summary_sheet.cell(row_index, col_index_text, evaluation.summary.text)
 
-    # Indicate progression - have we got all evaluations for this team? Are we close?
-    if len(evaluators) > 3:
-        print(f"FINISHED (4/4): {team_name}")
-    elif len(evaluators) > 2:
-        print(f"CLOSE TO FINISHING (3/4): {team_name}")
-
     os.makedirs(os.path.join(paths.HAZANOTOMAT_OUTPUT, exercise_name), exist_ok=True)  # Make sure directory exists
     wb.save(os.path.join(paths.HAZANOTOMAT_OUTPUT, exercise_name, f"צוות {team_name}.xlsx"))
 

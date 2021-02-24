@@ -61,7 +61,7 @@ def _sanitize_num(value: str) -> str:
 
 def _sanitize_team(team_name: str) -> str:
     """Remove tick so that e.g. א and א' are interpreted the same (as א)"""
-    return team_name.replace("'", "")
+    return team_name.replace("'", "").replace("׳", "")
 
 
 def _read_attribute(sheet, row, col):
@@ -83,8 +83,14 @@ def _read_sheet(sheet: xlrd.sheet.Sheet, exercise_name: str) -> List[Record]:
     for candidate_index in range(5):
         row = 5 + candidate_index * 2
         evaluator_name = sheet.cell_value(5, 1)
-        candidate_name = sheet.cell_value(row, 4)
+        candidate_name = sheet.cell_value(row, 4).strip()
         team_name = _sanitize_team(sheet.cell_value(5, 2))
+        if not candidate_name:
+            continue
+        if candidate_name and not team_name:
+            raise Exception("Error: No team name")
+        if team_name and not evaluator_name:
+            raise Exception("Error: No evaluator name")
         evaluation = Evaluation(
             evaluator_name=evaluator_name,
             exercise_name=exercise_name,
@@ -94,10 +100,6 @@ def _read_sheet(sheet: xlrd.sheet.Sheet, exercise_name: str) -> List[Record]:
             leader=_read_attribute(sheet, row, 20),
             summary=_read_attribute(sheet, row, 25)
         )
-        if candidate_name == "":
-            continue
-        if team_name == "":
-            print(f"ERROR No Team (evaluator is {evaluator_name})")
         records.append(Record(candidate_name, team_name, evaluation))
     return records
 
@@ -122,7 +124,7 @@ def _read_all_files(filepaths: List[str]) -> Dict[str, List[Evaluation]]:
                 print(f"WARNING: evaluator name {evaluator} not in file path {filepath}\n\tIt may be incorrect")
 
             for record in _read_sheet(sheet, exercise.name):
-                uuid = get_uuid(record.team, record.candidate_name)
+                uuid = get_uuid(record.team, record.candidate_name, filepath)
                 if uuid is None:
                     continue  # Candidate not found, identify module is responsible to report to user
                 if uuid not in evaluations_for_candidate:
