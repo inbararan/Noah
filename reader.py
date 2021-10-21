@@ -55,12 +55,16 @@ class Candidate(NamedTuple):
 
 
 def _sanitize_num(value: str) -> str:
-    """Remove annoying '.0' from numeric values which should all be integers (1-5, actuall)"""
+    """Remove annoying '.0' from numeric values which should all be integers"""
     return f"{int(value)}" if isinstance(value, float) else ""
 
 
 def _sanitize_team(team_name: str) -> str:
     """Remove tick so that e.g. א and א' are interpreted the same (as א)"""
+    if isinstance(team_name, float):
+        coerce = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ז', 'ח', 'ט', 'י'][int(team_name) - 1]
+        print(f"Team name sanitation: Coercing {team_name} into {coerce}")
+        return coerce
     return team_name.replace("'", "").replace("׳", "")
 
 

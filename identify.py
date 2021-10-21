@@ -12,7 +12,9 @@ collisions = set()
 def get_uuid(team, name, filename):
     options = []
     for record in records:
-        if team == record["team"] and name == record["full_name"].split()[0]:
+        if team != record["team"]:
+            continue
+        if name == record["full_name"] or name == record["full_name"].split()[0]:
             options.append(record["uuid"])
     if len(options) == 0:
         missing.add((team, name, filename))
